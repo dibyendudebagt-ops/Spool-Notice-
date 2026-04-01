@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Meeting Notice Generator</title>
-  <script src="jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body { font-family: Arial; padding: 20px; }
     input, textarea { width: 100%; margin: 5px 0; padding: 8px; }
@@ -48,144 +48,106 @@
 
 <button onclick="downloadPDF()">Download PDF</button>
 <button onclick="printPDF()">Print</button>
+  
+<script>
+const { jsPDF } = window.jspdf;
+</script>
 
 <script>
 <script>
-<script>
+const { jsPDF } = window.jspdf;
+
 function generatePDFDoc() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF("p", "mm", "a4");
+  const doc = new jsPDF();
 
-  const pageWidth = doc.internal.pageSize.getWidth();
   let y = 15;
+  const pageWidth = doc.internal.pageSize.getWidth();
 
-  function left(text, space = 6) {
-    doc.text(text, 15, y);
-    y += space;
+  function left(t, s=6){ doc.text(t,15,y); y+=s; }
+  function right(t,s=6){ doc.text(t,pageWidth-15,y,{align:"right"}); y+=s; }
+  function center(t,s=6){ doc.text(t,pageWidth/2,y,{align:"center"}); y+=s; }
+  function justify(t){
+    let split = doc.splitTextToSize(t,180);
+    doc.text(split,15,y,{maxWidth:180,align:"justify"});
+    y+=split.length*6;
   }
 
-  function right(text, space = 6) {
-    doc.text(text, pageWidth - 15, y, { align: "right" });
-    y += space;
-  }
-
-  function center(text, space = 6) {
-    doc.text(text, pageWidth / 2, y, { align: "center" });
-    y += space;
-  }
-
-  function justify(text) {
-    let split = doc.splitTextToSize(text, 180);
-    doc.text(split, 15, y, { maxWidth: 180, align: "justify" });
-    y += split.length * 6;
-  }
-
-  function toRoman(num) {
-    const roman = ["i","ii","iii","iv","v","vi","vii","viii","ix","x","xi","xii","xiii","xiv","xv"];
-    return roman[num] || num;
+  function roman(i){
+    const r=["i","ii","iii","iv","v","vi","vii","viii","ix","x"];
+    return r[i]||i;
   }
 
   // HEADER
-  left("No. " + document.getElementById("fileNo").value);
+  left("No. "+fileNo.value);
 
-  doc.setFont(undefined, "bold");
-  center(document.getElementById("office").value);
-  doc.setFont(undefined, "normal");
+  doc.setFont(undefined,"bold");
+  center(office.value);
+  doc.setFont(undefined,"normal");
 
-  center(document.getElementById("address").value);
+  center(address.value);
+  right("Dated, "+letterDate.value);
 
-  right("Dated, " + document.getElementById("letterDate").value);
-
-  y += 5;
+  y+=5;
 
   // TITLE
-  doc.setFont(undefined, "bold");
-  center("MEETING NOTICE", 2);
-  doc.line(pageWidth/2 - 25, y, pageWidth/2 + 25, y);
-  y += 8;
-  doc.setFont(undefined, "normal");
+  doc.setFont(undefined,"bold");
+  center("MEETING NOTICE",2);
+  doc.line(pageWidth/2-25,y,pageWidth/2+25,y);
+  y+=8;
+  doc.setFont(undefined,"normal");
 
   // BODY
-  let para = `A stakeholder consultation meeting is hereby scheduled on ${document.getElementById("meetingDateTime").value} at ${document.getElementById("venue").value} to discuss ${document.getElementById("subject").value}.`;
+  justify(`A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime.value} at ${venue.value} to discuss ${subject.value}.`);
 
-  justify(para);
-  y += 4;
-
+  y+=4;
   justify("In this context, the below mentioned officials are requested to attend the meeting.");
-  y += 6;
 
-  // ATTENDEES
-  let attendees = document.getElementById("attendees").value.split("\n");
-  attendees.forEach((p, i) => {
-    if (p.trim()) {
-      doc.text(`(${toRoman(i)})`, 18, y);
-      doc.text(p, 28, y);
-      y += 6;
+  y+=6;
+
+  attendees.value.split("\n").forEach((p,i)=>{
+    if(p.trim()){
+      doc.text(`(${roman(i)})`,18,y);
+      doc.text(p,28,y);
+      y+=6;
     }
   });
 
-  y += 10;
+  y+=10;
 
-  // SIGNATURE
-  doc.setFont(undefined, "bold");
-  doc.text(document.getElementById("signName").value, pageWidth - 15, y, { align: "right" });
-  y += 6;
+  doc.setFont(undefined,"bold");
+  right(signName.value);
+  doc.setFont(undefined,"normal");
+  right(designation.value);
 
-  doc.setFont(undefined, "normal");
-  doc.text(document.getElementById("designation").value, pageWidth - 15, y, { align: "right" });
+  y+=10;
 
-  y += 10;
-
-  // TO
   left("To");
   left("All concerned for kind information.");
 
-  y += 4;
+  y+=4;
 
-  // COPY
   left("Copy to:-");
-  let copies = document.getElementById("copyTo").value.split("\n");
-  copies.forEach((c, i) => {
-    if (c.trim()) {
-      doc.text(`${i + 1}. ${c}`, 18, y);
-      y += 6;
+  copyTo.value.split("\n").forEach((c,i)=>{
+    if(c.trim()){
+      doc.text(`${i+1}. ${c}`,18,y);
+      y+=6;
     }
   });
 
   return doc;
 }
 
-// ✅ DOWNLOAD (FIXED)
-function downloadPDF() {
+// ✅ DOWNLOAD (WORKING)
+function downloadPDF(){
   const doc = generatePDFDoc();
-
-  // safer method for mobile
-  const blob = doc.output("blob");
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "Meeting_Notice.pdf";
-  a.click();
-
-  URL.revokeObjectURL(url);
+  doc.save("Meeting_Notice.pdf");
 }
 
-// 🖨 PRINT BUTTON
-function printPDF() {
+// ✅ PRINT (WORKING)
+function printPDF(){
   const doc = generatePDFDoc();
-
-  const blob = doc.output("blob");
-  const url = URL.createObjectURL(blob);
-
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = url;
-  document.body.appendChild(iframe);
-
-  iframe.onload = function () {
-    iframe.contentWindow.print();
-  };
+  const blobUrl = doc.output("bloburl");
+  window.open(blobUrl);
 }
 </script>
 

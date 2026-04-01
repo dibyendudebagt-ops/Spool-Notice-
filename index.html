@@ -2,12 +2,41 @@
 <html>
 <head>
   <title>Meeting Notice Generator</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
     body { font-family: Arial; padding: 20px; }
-    input, textarea { width: 100%; margin: 5px 0; padding: 8px; }
-    button { padding: 10px; margin-top: 10px; }
+
+    input, textarea {
+      width: 100%;
+      margin: 5px 0;
+      padding: 8px;
+    }
+
+    button {
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    /* PRINT DOCUMENT STYLE */
+    #previewArea {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 25mm;
+      margin-top: 20px;
+      border: 1px solid #000;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .center { text-align: center; }
+    .right { text-align: right; }
+    .bold { font-weight: bold; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #previewArea, #previewArea * { visibility: visible; }
+      #previewArea { position: absolute; left: 0; top: 0; }
+    }
   </style>
 </head>
 
@@ -30,9 +59,8 @@
 <label>Meeting Subject</label>
 <textarea id="subject"></textarea>
 
-<!-- ✅ ADDED BODY FIELD (CORRECT PLACE) -->
 <label>Body Paragraph (Optional)</label>
-<textarea id="bodyText" placeholder="Write full meeting notice OR leave blank"></textarea>
+<textarea id="bodyText"></textarea>
 
 <label>Meeting Date & Time</label>
 <input id="meetingDateTime">
@@ -49,144 +77,81 @@
 <label>Designation</label>
 <input id="designation">
 
-<label>Dispatch / Copy To</label>
+<label>Copy To</label>
 <textarea id="copyTo"></textarea>
 
-<button onclick="downloadPDF()">Download PDF</button>
-<button onclick="printPDF()">Print</button>
-<button onclick="previewPDF()">Preview</button>
+<br>
+
+<button onclick="generatePreview()">Preview</button>
+<button onclick="printDocument()">Print / Save PDF</button>
+
+<!-- PREVIEW AREA -->
+<div id="previewArea"></div>
 
 <script>
-function getPDF() {
-  if (!window.jspdf) {
-    alert("PDF library not loaded.");
-    return null;
-  }
-  return new window.jspdf.jsPDF();
-}
+function generatePreview() {
+  let body = bodyText.value.trim();
 
-function generatePDFDoc() {
-  const doc = getPDF();
-  if (!doc) return null;
-
-  let y = 15;
-  const pageWidth = doc.internal.pageSize.getWidth();
-
-  function left(t, s=5){ doc.text(t || "",15,y); y+=s; }
-  function right(t,s=5){ doc.text(t || "",pageWidth-15,y,{align:"right"}); y+=s; }
-  function center(t,s=5){ doc.text(t || "",pageWidth/2,y,{align:"center"}); y+=s; }
-
-  function roman(i){
-    const r=["i","ii","iii","iv","v","vi","vii","viii","ix","x"];
-    return r[i] || i;
+  if (body === "") {
+    body = `A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime.value} at ${venue.value} to discuss ${subject.value}.`;
   }
 
-  // HEADER
-  left("No. " + fileNo.value);
+  let attendeesList = attendees.value.split("\n")
+    .map((a, i) => a.trim() ? `<div>(${i+1}) ${a}</div>` : "")
+    .join("");
 
-  doc.setFont(undefined,"bold");
-  center(office.value);
-  doc.setFont(undefined,"normal");
+  let copyList = copyTo.value.split("\n")
+    .map((c, i) => c.trim() ? `<div>${i+1}. ${c}</div>` : "")
+    .join("");
 
-  center(address.value);
-  right("Dated, " + letterDate.value);
+  let html = `
+    <div>
+      <div>No. ${fileNo.value}</div>
 
-  y += 5;
+      <div class="center bold">${office.value}</div>
+      <div class="center">${address.value}</div>
 
-  // TITLE
-  doc.setFont(undefined,"bold");
-  center("MEETING NOTICE",2);
-  doc.line(pageWidth/2-25,y,pageWidth/2+25,y);
-  y += 8;
-  doc.setFont(undefined,"normal");
+      <div class="right">Dated, ${letterDate.value}</div>
 
-  // ===== BODY (1.5 SPACING) =====
-  let userBody = bodyText.value.trim();
+      <br>
 
-  let para = userBody !== "" 
-    ? userBody 
-    : `A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime.value} at ${venue.value} to discuss ${subject.value}.`;
+      <div class="center bold">MEETING NOTICE</div>
+      <hr>
 
-  let split = doc.splitTextToSize(para, 180);
+      <p style="text-align: justify;">
+        ${body}
+      </p>
 
-  split.forEach(line => {
-    doc.text(line, 15, y, { maxWidth: 180, align: "justify" });
-    y += 9; // 1.5 spacing
-  });
+      <p style="text-align: justify;">
+        In this context, the below mentioned officials are requested to attend the meeting.
+      </p>
 
-  y += 3;
+      <div>${attendeesList}</div>
 
-  let secondPara = doc.splitTextToSize(
-    "In this context, the below mentioned officials are requested to attend the meeting.",
-    180
-  );
+      <br><br>
 
-  secondPara.forEach(line => {
-    doc.text(line, 15, y, { maxWidth: 180, align: "justify" });
-    y += 9;
-  });
+      <div class="right bold">${signName.value}</div>
+      <div class="right">${designation.value}</div>
 
-  y += 6;
+      <br>
 
-  // ATTENDEES
-  attendees.value.split("\n").forEach((p,i)=>{
-    if(p.trim()){
-      doc.text(`(${roman(i)})`,18,y);
-      doc.text(p,28,y);
-      y += 6;
-    }
-  });
+      <div>To</div>
+      <div>All concerned for kind information.</div>
 
-  y += 10;
+      <br>
 
-  // SIGNATURE
-  doc.setFont(undefined,"bold");
-  right(signName.value);
-  doc.setFont(undefined,"normal");
-  right(designation.value);
+      <div>Copy to:-</div>
+      ${copyList}
+    </div>
+  `;
 
-  y += 10;
-
-  // TO
-  left("To");
-  left("All concerned for kind information.");
-
-  y += 4;
-
-  // COPY
-  left("Copy to:-");
-  copyTo.value.split("\n").forEach((c,i)=>{
-    if(c.trim()){
-      doc.text(`${i+1}. ${c}`,18,y);
-      y += 6;
-    }
-  });
-
-  return doc;
-}
-
-// PREVIEW
-function previewPDF(){
-  const doc = generatePDFDoc();
-  if (!doc) return;
-
-  window.open(doc.output("bloburl"));
-}
-
-// DOWNLOAD
-function downloadPDF(){
-  const doc = generatePDFDoc();
-  if (!doc) return;
-
-  doc.save("Meeting_Notice.pdf");
+  document.getElementById("previewArea").innerHTML = html;
 }
 
 // PRINT
-function printPDF(){
-  const doc = generatePDFDoc();
-  if (!doc) return;
-
-  window.open(doc.output("bloburl"));
+function printDocument() {
+  generatePreview(); // ensure latest data
+  window.print();
 }
 </script>
 

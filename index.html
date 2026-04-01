@@ -103,19 +103,45 @@ function generatePDFDoc() {
   y+=8;
   doc.setFont(undefined,"normal");
 
+<label>Body Paragraph (Optional)</label>
+<textarea id="bodyText" placeholder="Write full meeting notice paragraph OR leave blank to auto-generate"></textarea>
+
+  
   // BODY
-  justify(`A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime.value} at ${venue.value} to discuss ${subject.value}.`);
+  // ===== BODY CONTROL (SMART INPUT) =====
 
-  y+=4;
-  justify("In this context, the below mentioned officials are requested to attend the meeting.");
+let userBody = document.getElementById("bodyText").value;
 
-  y+=6;
+let para;
 
-  attendees.value.split("\n").forEach((p,i)=>{
-    if(p.trim()){
-      doc.text(`(${roman(i)})`,18,y);
-      doc.text(p,28,y);
-      y+=6;
+if (userBody.trim() !== "") {
+  para = userBody; // full manual control
+} else {
+  para = `A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime.value} at ${venue.value} to discuss ${subject.value}.`;
+}
+
+// 1.5 line spacing
+let split = doc.splitTextToSize(para, 180);
+
+split.forEach(line => {
+  doc.text(line, 15, y, { maxWidth: 180, align: "justify" });
+  y += 9; // 1.5 spacing
+});
+
+y += 3;
+
+// second paragraph
+let line2 = doc.splitTextToSize(
+  "In this context, the below mentioned officials are requested to attend the meeting.",
+  180
+);
+
+line2.forEach(line => {
+  doc.text(line, 15, y, { maxWidth: 180, align: "justify" });
+  y += 9;
+});
+
+y += 6;
     }
   });
 

@@ -3,12 +3,14 @@
 <head>
   <title>Meeting Notice Generator</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
     body { font-family: Arial; padding: 20px; }
     input, textarea { width: 100%; margin: 5px 0; padding: 8px; }
     button { padding: 10px; margin-top: 10px; }
   </style>
 </head>
+
 <body>
 
 <h2>Meeting Notice Generator</h2>
@@ -27,6 +29,10 @@
 
 <label>Meeting Subject</label>
 <textarea id="subject"></textarea>
+
+<!-- ✅ ADDED BODY FIELD (CORRECT PLACE) -->
+<label>Body Paragraph (Optional)</label>
+<textarea id="bodyText" placeholder="Write full meeting notice OR leave blank"></textarea>
 
 <label>Meeting Date & Time</label>
 <input id="meetingDateTime">
@@ -49,15 +55,11 @@
 <button onclick="downloadPDF()">Download PDF</button>
 <button onclick="printPDF()">Print</button>
 <button onclick="previewPDF()">Preview</button>
-  
-<script>
-const { jsPDF } = window.jspdf;
-</script>
-  
+
 <script>
 function getPDF() {
   if (!window.jspdf) {
-    alert("PDF library not loaded. Check internet.");
+    alert("PDF library not loaded.");
     return null;
   }
   return new window.jspdf.jsPDF();
@@ -70,14 +72,9 @@ function generatePDFDoc() {
   let y = 15;
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  function left(t, s=6){ doc.text(t || "",15,y); y+=s; }
-  function right(t,s=6){ doc.text(t || "",pageWidth-15,y,{align:"right"}); y+=s; }
-  function center(t,s=6){ doc.text(t || "",pageWidth/2,y,{align:"center"}); y+=s; }
-  function justify(t){
-    let split = doc.splitTextToSize(t || "",180);
-    doc.text(split,15,y,{maxWidth:180,align:"justify"});
-    y+=split.length*6;
-  }
+  function left(t, s=5){ doc.text(t || "",15,y); y+=s; }
+  function right(t,s=5){ doc.text(t || "",pageWidth-15,y,{align:"right"}); y+=s; }
+  function center(t,s=5){ doc.text(t || "",pageWidth/2,y,{align:"center"}); y+=s; }
 
   function roman(i){
     const r=["i","ii","iii","iv","v","vi","vii","viii","ix","x"];
@@ -94,112 +91,104 @@ function generatePDFDoc() {
   center(address.value);
   right("Dated, " + letterDate.value);
 
-  y+=5;
+  y += 5;
 
   // TITLE
   doc.setFont(undefined,"bold");
   center("MEETING NOTICE",2);
   doc.line(pageWidth/2-25,y,pageWidth/2+25,y);
-  y+=8;
+  y += 8;
   doc.setFont(undefined,"normal");
 
-<label>Body Paragraph (Optional)</label>
-<textarea id="bodyText" placeholder="Write full meeting notice paragraph OR leave blank to auto-generate"></textarea>
+  // ===== BODY (1.5 SPACING) =====
+  let userBody = bodyText.value.trim();
 
-  
-  // BODY
-  // ===== BODY CONTROL (SMART INPUT) =====
+  let para = userBody !== "" 
+    ? userBody 
+    : `A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime.value} at ${venue.value} to discuss ${subject.value}.`;
 
-let userBody = document.getElementById("bodyText").value;
+  let split = doc.splitTextToSize(para, 180);
 
-let para;
+  split.forEach(line => {
+    doc.text(line, 15, y, { maxWidth: 180, align: "justify" });
+    y += 9; // 1.5 spacing
+  });
 
-if (userBody.trim() !== "") {
-  para = userBody; // full manual control
-} else {
-  para = `A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime.value} at ${venue.value} to discuss ${subject.value}.`;
-}
+  y += 3;
 
-// 1.5 line spacing
-let split = doc.splitTextToSize(para, 180);
+  let secondPara = doc.splitTextToSize(
+    "In this context, the below mentioned officials are requested to attend the meeting.",
+    180
+  );
 
-split.forEach(line => {
-  doc.text(line, 15, y, { maxWidth: 180, align: "justify" });
-  y += 9; // 1.5 spacing
-});
+  secondPara.forEach(line => {
+    doc.text(line, 15, y, { maxWidth: 180, align: "justify" });
+    y += 9;
+  });
 
-y += 3;
+  y += 6;
 
-// second paragraph
-let line2 = doc.splitTextToSize(
-  "In this context, the below mentioned officials are requested to attend the meeting.",
-  180
-);
-
-line2.forEach(line => {
-  doc.text(line, 15, y, { maxWidth: 180, align: "justify" });
-  y += 9;
-});
-
-y += 6;
+  // ATTENDEES
+  attendees.value.split("\n").forEach((p,i)=>{
+    if(p.trim()){
+      doc.text(`(${roman(i)})`,18,y);
+      doc.text(p,28,y);
+      y += 6;
     }
   });
 
-  y+=10;
+  y += 10;
 
+  // SIGNATURE
   doc.setFont(undefined,"bold");
   right(signName.value);
   doc.setFont(undefined,"normal");
   right(designation.value);
 
-  y+=10;
+  y += 10;
 
+  // TO
   left("To");
   left("All concerned for kind information.");
 
-  y+=4;
+  y += 4;
 
+  // COPY
   left("Copy to:-");
   copyTo.value.split("\n").forEach((c,i)=>{
     if(c.trim()){
       doc.text(`${i+1}. ${c}`,18,y);
-      y+=6;
+      y += 6;
     }
   });
 
   return doc;
 }
 
-// ✅ PREVIEW (BEST TEST)
+// PREVIEW
 function previewPDF(){
   const doc = generatePDFDoc();
   if (!doc) return;
 
-  const url = doc.output("bloburl");
-  window.open(url, "_blank");
-
-  alert("Preview opened. If you see PDF → system is working.");
+  window.open(doc.output("bloburl"));
 }
 
-// ✅ DOWNLOAD
+// DOWNLOAD
 function downloadPDF(){
   const doc = generatePDFDoc();
   if (!doc) return;
 
   doc.save("Meeting_Notice.pdf");
-  alert("Download triggered!");
 }
 
-// ✅ PRINT
+// PRINT
 function printPDF(){
   const doc = generatePDFDoc();
   if (!doc) return;
 
-  const url = doc.output("bloburl");
-  window.open(url);
-
-  alert("Print window opened!");
+  window.open(doc.output("bloburl"));
 }
 </script>
+
 </body>
 </html>

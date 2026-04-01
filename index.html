@@ -90,15 +90,23 @@
 
 <script>
 function generatePreview() {
-  let body = document.getElementById("bodyText").value.trim();
+  <!-- let body = document.getElementById("bodyText").value.trim(); -->
 
   let meetingDateTime = document.getElementById("meetingDateTime").value;
   let venue = document.getElementById("venue").value;
   let subject = document.getElementById("subject").value;
 
-  if (body === "") {
-    body = `A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime} at ${venue} to discuss ${subject}.`;
-  }
+  let userBody = document.getElementById("bodyText").value.trim();
+
+let autoText = `A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime} at ${venue} to discuss ${subject}.`;
+
+let body;
+
+if (userBody === "") {
+  body = autoText;
+} else {
+  body = autoText + " " + userBody;
+}
 
   let attendeesList = document.getElementById("attendees").value.split("\n")
     .map((a, i) => a.trim() ? `<div>(${i+1}) ${a}</div>` : "")

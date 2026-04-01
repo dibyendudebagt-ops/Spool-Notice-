@@ -55,43 +55,44 @@ const { jsPDF } = window.jspdf;
 </script>
   
 <script>
-function previewPDF(){
-  const doc = generatePDFDoc();
-  const blobUrl = doc.output("bloburl");
-  window.open(blobUrl, "_blank");
+function getPDF() {
+  if (!window.jspdf) {
+    alert("PDF library not loaded. Check internet.");
+    return null;
+  }
+  return new window.jspdf.jsPDF();
 }
-</script>
-  
-<script>
+
 function generatePDFDoc() {
-const doc = new jsPDF();
+  const doc = getPDF();
+  if (!doc) return null;
 
   let y = 15;
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  function left(t, s=6){ doc.text(t,15,y); y+=s; }
-  function right(t,s=6){ doc.text(t,pageWidth-15,y,{align:"right"}); y+=s; }
-  function center(t,s=6){ doc.text(t,pageWidth/2,y,{align:"center"}); y+=s; }
+  function left(t, s=6){ doc.text(t || "",15,y); y+=s; }
+  function right(t,s=6){ doc.text(t || "",pageWidth-15,y,{align:"right"}); y+=s; }
+  function center(t,s=6){ doc.text(t || "",pageWidth/2,y,{align:"center"}); y+=s; }
   function justify(t){
-    let split = doc.splitTextToSize(t,180);
+    let split = doc.splitTextToSize(t || "",180);
     doc.text(split,15,y,{maxWidth:180,align:"justify"});
     y+=split.length*6;
   }
 
   function roman(i){
     const r=["i","ii","iii","iv","v","vi","vii","viii","ix","x"];
-    return r[i]||i;
+    return r[i] || i;
   }
 
   // HEADER
-  left("No. " + document.getElementById("fileNo").value);
+  left("No. " + fileNo.value);
 
   doc.setFont(undefined,"bold");
-  center(document.getElementById("office").value);
+  center(office.value);
   doc.setFont(undefined,"normal");
 
-  center(document.getElementById("address").value);
-  right("Dated, " + document.getElementById("letterDate").value);
+  center(address.value);
+  right("Dated, " + letterDate.value);
 
   y+=5;
 
@@ -103,14 +104,14 @@ const doc = new jsPDF();
   doc.setFont(undefined,"normal");
 
   // BODY
-  justify(`A stakeholder consultation meeting is hereby scheduled on ${document.getElementById("meetingDateTime").value} at ${document.getElementById("venue").value} to discuss ${document.getElementById("subject").value}.`);
+  justify(`A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime.value} at ${venue.value} to discuss ${subject.value}.`);
 
   y+=4;
   justify("In this context, the below mentioned officials are requested to attend the meeting.");
 
   y+=6;
 
-  document.getElementById("attendees").value.split("\n").forEach((p,i)=>{
+  attendees.value.split("\n").forEach((p,i)=>{
     if(p.trim()){
       doc.text(`(${roman(i)})`,18,y);
       doc.text(p,28,y);
@@ -121,9 +122,9 @@ const doc = new jsPDF();
   y+=10;
 
   doc.setFont(undefined,"bold");
-  right(document.getElementById("signName").value);
+  right(signName.value);
   doc.setFont(undefined,"normal");
-  right(document.getElementById("designation").value);
+  right(designation.value);
 
   y+=10;
 
@@ -133,7 +134,7 @@ const doc = new jsPDF();
   y+=4;
 
   left("Copy to:-");
-  document.getElementById("copyTo").value.split("\n").forEach((c,i)=>{
+  copyTo.value.split("\n").forEach((c,i)=>{
     if(c.trim()){
       doc.text(`${i+1}. ${c}`,18,y);
       y+=6;
@@ -143,17 +144,35 @@ const doc = new jsPDF();
   return doc;
 }
 
+// ✅ PREVIEW (BEST TEST)
+function previewPDF(){
+  const doc = generatePDFDoc();
+  if (!doc) return;
+
+  const url = doc.output("bloburl");
+  window.open(url, "_blank");
+
+  alert("Preview opened. If you see PDF → system is working.");
+}
+
 // ✅ DOWNLOAD
 function downloadPDF(){
   const doc = generatePDFDoc();
+  if (!doc) return;
+
   doc.save("Meeting_Notice.pdf");
+  alert("Download triggered!");
 }
 
 // ✅ PRINT
 function printPDF(){
   const doc = generatePDFDoc();
-  const blobUrl = doc.output("bloburl");
-  window.open(blobUrl);
+  if (!doc) return;
+
+  const url = doc.output("bloburl");
+  window.open(url);
+
+  alert("Print window opened!");
 }
 </script>
 </body>

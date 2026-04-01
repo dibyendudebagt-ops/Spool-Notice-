@@ -90,28 +90,32 @@
 
 <script>
 function generatePreview() {
-  let body = bodyText.value.trim();
+  let body = document.getElementById("bodyText").value.trim();
+
+  let meetingDateTime = document.getElementById("meetingDateTime").value;
+  let venue = document.getElementById("venue").value;
+  let subject = document.getElementById("subject").value;
 
   if (body === "") {
-    body = `A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime.value} at ${venue.value} to discuss ${subject.value}.`;
+    body = `A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime} at ${venue} to discuss ${subject}.`;
   }
 
-  let attendeesList = attendees.value.split("\n")
+  let attendeesList = document.getElementById("attendees").value.split("\n")
     .map((a, i) => a.trim() ? `<div>(${i+1}) ${a}</div>` : "")
     .join("");
 
-  let copyList = copyTo.value.split("\n")
+  let copyList = document.getElementById("copyTo").value.split("\n")
     .map((c, i) => c.trim() ? `<div>${i+1}. ${c}</div>` : "")
     .join("");
 
   let html = `
     <div>
-      <div>No. ${fileNo.value}</div>
+      <div>No. ${document.getElementById("fileNo").value}</div>
 
-      <div class="center bold">${office.value}</div>
-      <div class="center">${address.value}</div>
+      <div class="center bold">${document.getElementById("office").value}</div>
+      <div class="center">${document.getElementById("address").value}</div>
 
-      <div class="right">Dated, ${letterDate.value}</div>
+      <div class="right">Dated, ${document.getElementById("letterDate").value}</div>
 
       <br>
 
@@ -126,12 +130,12 @@ function generatePreview() {
         In this context, the below mentioned officials are requested to attend the meeting.
       </p>
 
-      <div>${attendeesList}</div>
+      ${attendeesList}
 
       <br><br>
 
-      <div class="right bold">${signName.value}</div>
-      <div class="right">${designation.value}</div>
+      <div class="right bold">${document.getElementById("signName").value}</div>
+      <div class="right">${document.getElementById("designation").value}</div>
 
       <br>
 

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Meeting Notice Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, textarea { width: 100%; margin: 5px 0; padding: 8px; }
+    button { padding: 10px; margin-top: 10px; }
+  </style>
+</head>
+
+<body>
+
+<h2>Meeting Notice Generator</h2>
+
+<label>File Number</label>
+<input id="fileNo">
+
+<label>Office Name</label>
+<input id="office">
+
+<label>Office Address</label>
+<input id="address">
+
+<label>Letter Date</label>
+<input type="date" id="letterDate">
+
+<label>Meeting Subject</label>
+<textarea id="subject"></textarea>
+
+<label>Meeting Date & Time</label>
+<input id="meetingDateTime">
+
+<label>Venue</label>
+<input id="venue">
+
+<label>Attendees (one per line)</label>
+<textarea id="attendees"></textarea>
+
+<label>Signatory Name</label>
+<input id="signName">
+
+<label>Designation</label>
+<input id="designation">
+
+<label>Dispatch / Copy To</label>
+<textarea id="copyTo"></textarea>
+
+<button onclick="generatePDF()">Download PDF</button>
+
+<script>
+async function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  let y = 10;
+
+  function addLine(text, space=7) {
+    doc.text(text, 10, y);
+    y += space;
+  }
+
+  // Header
+  addLine("No. " + document.getElementById("fileNo").value);
+  addLine(document.getElementById("office").value);
+  addLine(document.getElementById("address").value);
+
+  y += 5;
+
+  addLine("Dated: " + document.getElementById("letterDate").value);
+
+  y += 5;
+  addLine("MEETING NOTICE");
+
+  y += 5;
+
+  // Body
+  let subject = document.getElementById("subject").value;
+  let meetingDT = document.getElementById("meetingDateTime").value;
+  let venue = document.getElementById("venue").value;
+
+  let para = `A stakeholder consultation meeting is hereby scheduled on ${meetingDT} at ${venue} to discuss ${subject}.`;
+
+  let splitPara = doc.splitTextToSize(para, 180);
+  doc.text(splitPara, 10, y);
+  y += splitPara.length * 7;
+
+  y += 5;
+  addLine("In this context, the following officials are requested to attend:");
+
+  y += 5;
+
+  // Attendees list
+  let attendees = document.getElementById("attendees").value.split("\n");
+  attendees.forEach((person, i) => {
+    if (person.trim() !== "") {
+      addLine(`(${i+1}) ${person}`);
+    }
+  });
+
+  y += 10;
+
+  // Signature
+  addLine(document.getElementById("signName").value);
+  addLine(document.getElementById("designation").value);
+
+  y += 10;
+
+  addLine("To:");
+  addLine("All concerned for kind information.");
+
+  y += 5;
+
+  addLine("Copy to:");
+  let copies = document.getElementById("copyTo").value.split("\n");
+  copies.forEach((c, i) => {
+    if (c.trim() !== "") {
+      addLine(`${i+1}. ${c}`);
+    }
+  });
+
+  // Save PDF
+  doc.save("Meeting_Notice.pdf");
+}
+</script>
+
+</body>
+</html>

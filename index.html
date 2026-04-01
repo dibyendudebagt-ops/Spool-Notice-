@@ -50,77 +50,119 @@
 <button onclick="generatePDF()">Download PDF</button>
 
 <script>
-async function generatePDF() {
+<script>
+function generatePDF() {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+  const doc = new jsPDF("p", "mm", "a4");
 
-  let y = 10;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 15;
 
-  function addLine(text, space=7) {
-    doc.text(text, 10, y);
+  function left(text, space = 6) {
+    doc.text(text, 15, y);
     y += space;
   }
 
-  // Header
-  addLine("No. " + document.getElementById("fileNo").value);
-  addLine(document.getElementById("office").value);
-  addLine(document.getElementById("address").value);
+  function right(text, space = 6) {
+    doc.text(text, pageWidth - 15, y, { align: "right" });
+    y += space;
+  }
+
+  function center(text, space = 6) {
+    doc.text(text, pageWidth / 2, y, { align: "center" });
+    y += space;
+  }
+
+  function justify(text) {
+    let split = doc.splitTextToSize(text, 180);
+    doc.text(split, 15, y, { maxWidth: 180, align: "justify" });
+    y += split.length * 6;
+  }
+
+  function toRoman(num) {
+    const roman = ["i","ii","iii","iv","v","vi","vii","viii","ix","x","xi","xii","xiii","xiv","xv"];
+    return roman[num] || num;
+  }
+
+  // ===== HEADER =====
+  left("No. " + document.getElementById("fileNo").value);
+
+  doc.setFont(undefined, "bold");
+  center(document.getElementById("office").value);
+  doc.setFont(undefined, "normal");
+
+  center(document.getElementById("address").value);
+
+  // Date on right
+  right("Dated, " + document.getElementById("letterDate").value);
 
   y += 5;
 
-  addLine("Dated: " + document.getElementById("letterDate").value);
+  // ===== TITLE =====
+  doc.setFont(undefined, "bold");
+  center("MEETING NOTICE", 2);
 
-  y += 5;
-  addLine("MEETING NOTICE");
+  // underline
+  doc.line(pageWidth/2 - 25, y, pageWidth/2 + 25, y);
+  y += 8;
+  doc.setFont(undefined, "normal");
 
-  y += 5;
+  // ===== BODY =====
+  let para = `A stakeholder consultation meeting is hereby scheduled under the chairmanship on ${document.getElementById("meetingDateTime").value} at ${document.getElementById("venue").value} to discuss ${document.getElementById("subject").value}.`;
 
-  // Body
-  let subject = document.getElementById("subject").value;
-  let meetingDT = document.getElementById("meetingDateTime").value;
-  let venue = document.getElementById("venue").value;
+  justify(para);
 
-  let para = `A stakeholder consultation meeting is hereby scheduled on ${meetingDT} at ${venue} to discuss ${subject}.`;
+  y += 4;
 
-  let splitPara = doc.splitTextToSize(para, 180);
-  doc.text(splitPara, 10, y);
-  y += splitPara.length * 7;
+  justify("In this context, the below mentioned officials are requested to attend the meeting.");
 
-  y += 5;
-  addLine("In this context, the following officials are requested to attend:");
+  y += 6;
 
-  y += 5;
-
-  // Attendees list
+  // ===== ATTENDEES =====
   let attendees = document.getElementById("attendees").value.split("\n");
-  attendees.forEach((person, i) => {
-    if (person.trim() !== "") {
-      addLine(`(${i+1}) ${person}`);
+
+  attendees.forEach((p, i) => {
+    if (p.trim()) {
+      doc.text(`(${toRoman(i)})`, 18, y);
+      doc.text(p, 28, y);
+      y += 6;
     }
   });
 
   y += 10;
 
-  // Signature
-  addLine(document.getElementById("signName").value);
-  addLine(document.getElementById("designation").value);
+  // ===== SIGNATURE =====
+  let signName = document.getElementById("signName").value;
+  let designation = document.getElementById("designation").value;
+
+  doc.setFont(undefined, "bold");
+  doc.text(signName, pageWidth - 15, y, { align: "right" });
+  y += 6;
+
+  doc.setFont(undefined, "normal");
+  doc.text(designation, pageWidth - 15, y, { align: "right" });
 
   y += 10;
 
-  addLine("To:");
-  addLine("All concerned for kind information.");
+  // ===== TO =====
+  left("To");
+  left("All concerned for kind information.");
 
-  y += 5;
+  y += 4;
 
-  addLine("Copy to:");
+  // ===== COPY TO =====
+  left("Copy to:-");
+
   let copies = document.getElementById("copyTo").value.split("\n");
+
   copies.forEach((c, i) => {
-    if (c.trim() !== "") {
-      addLine(`${i+1}. ${c}`);
+    if (c.trim()) {
+      doc.text(`${i + 1}. ${c}`, 18, y);
+      y += 6;
     }
   });
 
-  // Save PDF
+  // ===== SAVE =====
   doc.save("Meeting_Notice.pdf");
 }
 </script>

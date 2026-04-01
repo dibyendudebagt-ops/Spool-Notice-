@@ -48,17 +48,23 @@
 
 <button onclick="downloadPDF()">Download PDF</button>
 <button onclick="printPDF()">Print</button>
+<button onclick="previewPDF()">Preview</button>
   
 <script>
 const { jsPDF } = window.jspdf;
 </script>
-
+  
 <script>
+function previewPDF(){
+  const doc = generatePDFDoc();
+  const blobUrl = doc.output("bloburl");
+  window.open(blobUrl, "_blank");
+}
+</script>
+  
 <script>
-const { jsPDF } = window.jspdf;
-
 function generatePDFDoc() {
-  const doc = new jsPDF();
+const doc = new jsPDF();
 
   let y = 15;
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -78,14 +84,14 @@ function generatePDFDoc() {
   }
 
   // HEADER
-  left("No. "+fileNo.value);
+  left("No. " + document.getElementById("fileNo").value);
 
   doc.setFont(undefined,"bold");
-  center(office.value);
+  center(document.getElementById("office").value);
   doc.setFont(undefined,"normal");
 
-  center(address.value);
-  right("Dated, "+letterDate.value);
+  center(document.getElementById("address").value);
+  right("Dated, " + document.getElementById("letterDate").value);
 
   y+=5;
 
@@ -97,14 +103,14 @@ function generatePDFDoc() {
   doc.setFont(undefined,"normal");
 
   // BODY
-  justify(`A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime.value} at ${venue.value} to discuss ${subject.value}.`);
+  justify(`A stakeholder consultation meeting is hereby scheduled on ${document.getElementById("meetingDateTime").value} at ${document.getElementById("venue").value} to discuss ${document.getElementById("subject").value}.`);
 
   y+=4;
   justify("In this context, the below mentioned officials are requested to attend the meeting.");
 
   y+=6;
 
-  attendees.value.split("\n").forEach((p,i)=>{
+  document.getElementById("attendees").value.split("\n").forEach((p,i)=>{
     if(p.trim()){
       doc.text(`(${roman(i)})`,18,y);
       doc.text(p,28,y);
@@ -115,9 +121,9 @@ function generatePDFDoc() {
   y+=10;
 
   doc.setFont(undefined,"bold");
-  right(signName.value);
+  right(document.getElementById("signName").value);
   doc.setFont(undefined,"normal");
-  right(designation.value);
+  right(document.getElementById("designation").value);
 
   y+=10;
 
@@ -127,7 +133,7 @@ function generatePDFDoc() {
   y+=4;
 
   left("Copy to:-");
-  copyTo.value.split("\n").forEach((c,i)=>{
+  document.getElementById("copyTo").value.split("\n").forEach((c,i)=>{
     if(c.trim()){
       doc.text(`${i+1}. ${c}`,18,y);
       y+=6;
@@ -137,19 +143,18 @@ function generatePDFDoc() {
   return doc;
 }
 
-// ✅ DOWNLOAD (WORKING)
+// ✅ DOWNLOAD
 function downloadPDF(){
   const doc = generatePDFDoc();
   doc.save("Meeting_Notice.pdf");
 }
 
-// ✅ PRINT (WORKING)
+// ✅ PRINT
 function printPDF(){
   const doc = generatePDFDoc();
   const blobUrl = doc.output("bloburl");
   window.open(blobUrl);
 }
 </script>
-
 </body>
 </html>

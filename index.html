@@ -17,7 +17,6 @@
       margin-top: 10px;
     }
 
-    /* PRINT DOCUMENT STYLE */
     #previewArea {
       width: 210mm;
       min-height: 297mm;
@@ -31,6 +30,11 @@
     .center { text-align: center; }
     .right { text-align: right; }
     .bold { font-weight: bold; }
+
+    img {
+      display: block;
+      margin: 0 auto;
+    }
 
     @media print {
       body * { visibility: hidden; }
@@ -85,28 +89,19 @@
 <button onclick="generatePreview()">Preview</button>
 <button onclick="printDocument()">Print / Save PDF</button>
 
-<!-- PREVIEW AREA -->
 <div id="previewArea"></div>
 
 <script>
 function generatePreview() {
-  <!-- let body = document.getElementById("bodyText").value.trim(); -->
 
   let meetingDateTime = document.getElementById("meetingDateTime").value;
   let venue = document.getElementById("venue").value;
   let subject = document.getElementById("subject").value;
-
   let userBody = document.getElementById("bodyText").value.trim();
 
-let autoText = `A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime} at ${venue} to discuss ${subject}.`;
+  let autoText = `A stakeholder consultation meeting is hereby scheduled on ${meetingDateTime} at ${venue} to discuss ${subject}.`;
 
-let body;
-
-if (userBody === "") {
-  body = autoText;
-} else {
-  body = autoText + " " + userBody;
-}
+  let body = userBody === "" ? autoText : autoText + " " + userBody;
 
   let attendeesList = document.getElementById("attendees").value.split("\n")
     .map((a, i) => a.trim() ? `<div>(${i+1}) ${a}</div>` : "")
@@ -118,29 +113,26 @@ if (userBody === "") {
 
   let html = `
     <div>
+
+      <!-- LOGO -->
+      <div class="center">
+        <img src="Tripura.png" style="width:90px;">
+      </div>
+
+      <!-- OFFICE NAME -->
+      <div class="center bold">
+        ${document.getElementById("office").value}
+      </div>
+
+      <div class="center">
+        ${document.getElementById("address").value}
+      </div>
+
+      <br>
+
       <div>No. ${document.getElementById("fileNo").value}</div>
+      <div class="right">Dated, ${document.getElementById("letterDate").value}</div>
 
-      let html = `
-  <div>
-
-    <!-- LOGO -->
-    <div class="center">
-      <img src="tripura.png" style="width:100px; margin-bottom:5px;">
-    </div>
-
-    <!-- OFFICE NAME BELOW GOVT TEXT -->
-    <div class="center bold" style="margin-top:5px;">
-      ${document.getElementById("office").value}
-    </div>
-
-    <div class="center">
-      ${document.getElementById("address").value}
-    </div>
-
-    <br>
-
-    <div>No. ${document.getElementById("fileNo").value}</div>
-    <div class="right">Dated, ${document.getElementById("letterDate").value}</div>
       <br>
 
       <div class="center bold">MEETING NOTICE</div>
@@ -170,15 +162,15 @@ if (userBody === "") {
 
       <div>Copy to:-</div>
       ${copyList}
+
     </div>
   `;
 
   document.getElementById("previewArea").innerHTML = html;
 }
 
-// PRINT
 function printDocument() {
-  generatePreview(); // ensure latest data
+  generatePreview();
   window.print();
 }
 </script>

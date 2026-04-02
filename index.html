@@ -31,23 +31,18 @@
     .right { text-align: right; }
     .bold { font-weight: bold; }
 
-    img {
+    /* ✅ FIXED LOGO CSS */
+    .logo {
+      width: 78px;
+      height: auto;
       display: block;
-      margin: 0 auto;
+      margin: 0 auto 3px auto;
     }
 
     @media print {
       body * { visibility: hidden; }
       #previewArea, #previewArea * { visibility: visible; }
       #previewArea { position: absolute; left: 0; top: 0; }
-
-.logo {
-  width: 78px;
-  height: auto;
-  display: block;
-  margin: 0 auto 3px auto;
-}
-      
     }
   </style>
 </head>
@@ -120,17 +115,18 @@ function generatePreview() {
     .join("");
 
   let html = `
-  <img src="Tripura.png" class="logo">
-  
-      <!-- OFFICE NAME -->
-  <div class="center bold" style="margin-top:2px;">
-    ${document.getElementById("office").value}
-  </div>
+    <div>
 
-  <div class="center">
-    ${document.getElementById("address").value}
-  </div>
-`;
+      <img src="Tripura.png" class="logo">
+
+      <div class="center bold" style="margin-top:2px;">
+        ${document.getElementById("office").value}
+      </div>
+
+      <div class="center">
+        ${document.getElementById("address").value}
+      </div>
+
       <br>
 
       <div>No. ${document.getElementById("fileNo").value}</div>

@@ -40,6 +40,14 @@
       body * { visibility: hidden; }
       #previewArea, #previewArea * { visibility: visible; }
       #previewArea { position: absolute; left: 0; top: 0; }
+
+.logo {
+  width: 78px;
+  height: auto;
+  display: block;
+  margin: 0 auto 3px auto;
+}
+      
     }
   </style>
 </head>
@@ -112,27 +120,17 @@ function generatePreview() {
     .join("");
 
   let html = `
-    <div>
-
-      <!-- LOGO -->
-      
-      <img src="tripura.png" class="logo">
-      
-.logo {
-  width: 80px;              /* Adjust size */
-  display: block;
-  margin: 0 auto 5px auto; /* center + small gap below */
-}
-
+  <img src="Tripura.png" class="logo">
+  
       <!-- OFFICE NAME -->
-      <div class="center bold">
-        ${document.getElementById("office").value}
-      </div>
+  <div class="center bold" style="margin-top:2px;">
+    ${document.getElementById("office").value}
+  </div>
 
-      <div class="center">
-        ${document.getElementById("address").value}
-      </div>
-
+  <div class="center">
+    ${document.getElementById("address").value}
+  </div>
+`;
       <br>
 
       <div>No. ${document.getElementById("fileNo").value}</div>

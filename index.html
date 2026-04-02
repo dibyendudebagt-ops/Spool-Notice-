@@ -120,11 +120,27 @@ if (userBody === "") {
     <div>
       <div>No. ${document.getElementById("fileNo").value}</div>
 
-      <div class="center bold">${document.getElementById("office").value}</div>
-      <div class="center">${document.getElementById("address").value}</div>
+      let html = `
+  <div>
 
-      <div class="right">Dated, ${document.getElementById("letterDate").value}</div>
+    <!-- LOGO -->
+    <div class="center">
+      <img src="tripura.png" style="width:100px; margin-bottom:5px;">
+    </div>
 
+    <!-- OFFICE NAME BELOW GOVT TEXT -->
+    <div class="center bold" style="margin-top:5px;">
+      ${document.getElementById("office").value}
+    </div>
+
+    <div class="center">
+      ${document.getElementById("address").value}
+    </div>
+
+    <br>
+
+    <div>No. ${document.getElementById("fileNo").value}</div>
+    <div class="right">Dated, ${document.getElementById("letterDate").value}</div>
       <br>
 
       <div class="center bold">MEETING NOTICE</div>
